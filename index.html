@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>I Love Bunny Quiz</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      font-family: 'baloo 2', cursive;
+      background-color: #8b20ce;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    #quiz-container {
+      background-color: #d370d6;
+      border-radius: 15px;
+      padding: 30px 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    #question-container, #name-container, #result-container {
+      width: 300px;
+      background-color: #ffe0f7;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 10px;
+      background-color: pink;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background-color: lightpink;
+      transform: scale(1.05);
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 2em;
+      color: rgb(177, 11, 39);
+      user-select: none;
+      animation: floatHeart 2s ease-out;
+    }
+
+    @keyframes floatHeart {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-400px); }
+    }
+
+    #bunny-image {
+      width: 150px;
+      height: auto;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    #scoreboard {
+      margin-top: 20px;
+      width: 300px;
+      background-color: #ffe0f7;
+      border-radius: 15px;
+      padding: 15px;
+      text-align: left;
+    }
+
+    #scoreboard h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="quiz-container">
+    <img src="bunny.png" alt="Cute Bunny" id="bunny-image">
+    <h1>I Love Bunny Quiz</h1>
+
+    <!-- Name Input -->
+    <div id="name-container">
+      <p>Enter your name to start:</p>
+      <input type="text" id="player-name" placeholder="Your name">
+      <button onclick="submitName()">Continue</button>
+    </div>
+
+    <!-- Start Button (hidden once name is entered) -->
+    <button id="start-btn" onclick="startQuiz()" style="display:none;">Start Quiz</button>
+
+    <!-- Question Container -->
+    <div id="question-container" style="display:none;">
+      <p id="question"></p>
+      <div id="options"></div>
+      <img src="heart.png" alt="Heart" id="question-heart-img" width="40">
+    </div>
+
+    <!-- Result Container -->
+    <div id="result-container" style="display:none;">
+      <p id="score"></p>
+      <button onclick="restartQuiz()">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div id="scoreboard">
+    <h3>Scoreboard</h3>
+    <ul id="score-list"></ul>
+  </div>
+
+<script>
+  let playerName = "";
+  let currentQuestion = 0;
+  let score = 0;
+
+  const questions = [
+    { question: "What is Bunny's favorite color?", options: ["Pink","Yellow","Purple","Blue"], answer: "Pink" },
+    { question: "What is Bunny's favorite flower?", options: ["Bird of Paradise","Lily","Tulip","Sunflower"], answer: "Bird of Paradise" },
+    { question: "What is Bunny's favorite hobby?", options: ["coding","Drawing","Playing piano","Swimming"], answer: "coding" },
+    { question: "What is Bunny's Go to Meal?", options: ["Pasta","Pizza","Curry","Tofu"], answer: "Curry" },
+    { question: "What is Bunny's favorite animal?", options: ["Cats","Dogs","Bunnies","Birds"], answer: "Cats" },
+    { question: "What does Bunny hate the most?", options: ["Capitlism","Cleaning","Work","Spicy Food"], answer: "Capitlism" }
+  ];
+
+  // Show floating hearts on load
+  window.onload = () => {
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        const heart = document.createElement("span");
+        heart.textContent = "❤️";
+        heart.className = "heart";
+        heart.style.left = Math.random() * window.innerWidth + "px";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 2000);
+      }, i * 300);
+    }
+  };
+
+  function submitName() {
+    const input = document.getElementById("player-name");
+    if(input.value.trim() === "") {
+      alert("Please enter your name!");
+      return;
+    }
+    playerName = input.value.trim();
+    document.getElementById("name-container").style.display = "none";
+    document.getElementById("start-btn").style.display = "block";
+  }
+
+  function startQuiz() {
+    document.getElementById("start-btn").style.display = "none";
+    document.getElementById("question-container").style.display = "flex";
+    currentQuestion = 0;
+    score = 0;
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById("question").textContent = `${playerName}, ${q.question}`;
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+    q.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.textContent = opt;
+      btn.onclick = () => selectOption(opt);
+      optionsDiv.appendChild(btn);
+    });
+  }
+
+  function selectOption(option) {
+    if(option === questions[currentQuestion].answer) score++;
+    currentQuestion++;
+    if(currentQuestion < questions.length) showQuestion();
+    else showResult();
+  }
+
+  function showResult() {
+    document.getElementById("question-container").style.display = "none";
+    const resultContainer = document.getElementById("result-container");
+    resultContainer.style.display = "flex";
+
+    let message = "";
+    if(score <= 1) message = "You hate Bunny!!";
+    else if(score <= 2) message = "Damn, did you even try to know Bunny?";
+    else if(score <= 4) message = "You like Bunny but you don’t love Bunny";
+    else message = "GOD DAMN YOU + BUNNY = BFF";
+
+    document.getElementById("score").textContent = `${playerName}, your score: ${score}/${questions.length} - ${message}`;
+
+    // Add to scoreboard
+    const li = document.createElement("li");
+    li.textContent = `${playerName}: ${score}/${questions.length}`;
+    document.getElementById("score-list").appendChild(li);
+  }
+
+  function restartQuiz() {
+    document.getElementById("result-container").style.display = "none";
+    document.getElementById("name-container").style.display = "block";
+    document.getElementById("player-name").value = "";
+  }
+</script>
+</body>
+</html>
